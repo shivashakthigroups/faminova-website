@@ -3,18 +3,12 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
-    // --------------------------------------------------
-    // 1. Check authentication
-    // --------------------------------------------------
-
     const authorization =
       request.headers.get("authorization");
 
     if (!authorization?.startsWith("Bearer ")) {
       return NextResponse.json(
-        {
-          error: "Authentication required.",
-        },
+        { error: "Authentication required." },
         { status: 401 }
       );
     }
@@ -22,15 +16,14 @@ export async function POST(request: Request) {
     const accessToken =
       authorization.replace("Bearer ", "");
 
-    // --------------------------------------------------
-    // 2. Environment variables
-    // --------------------------------------------------
-
     const supabaseUrl =
       process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-    const supabaseKey =
+    const publishableKey =
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+    const serviceRoleKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     const cashfreeClientId =
       process.env.CASHFREE_CLIENT_ID;
@@ -40,56 +33,47 @@ export async function POST(request: Request) {
 
     if (
       !supabaseUrl ||
-      !supabaseKey ||
+      !publishableKey ||
+      !serviceRoleKey ||
       !cashfreeClientId ||
       !cashfreeClientSecret
     ) {
-      console.error(
-        "Required environment variables are missing."
-      );
-
       return NextResponse.json(
         {
           error:
-            "Payment configuration is incomplete.",
+            "Server configuration is incomplete.",
         },
         { status: 500 }
       );
     }
 
-    // --------------------------------------------------
-    // 3. Create authenticated Supabase client
-    // --------------------------------------------------
+    // -----------------------------------------
+    // User client: only used to verify login
+    // -----------------------------------------
 
-    const supabase = createClient(
-      supabaseUrl,
-      supabaseKey,
-      {
-        global: {
-          headers: {
-            Authorization:
-              `Bearer ${accessToken}`,
+    const userSupabase =
+      createClient(
+        supabaseUrl,
+        publishableKey,
+        {
+          global: {
+            headers: {
+              Authorization:
+                `Bearer ${accessToken}`,
+            },
           },
-        },
-      }
-    );
-
-    // --------------------------------------------------
-    // 4. Verify logged-in user
-    // --------------------------------------------------
+        }
+      );
 
     const {
       data: { user },
       error: userError,
     } =
-      await supabase.auth.getUser(accessToken);
-
-    if (userError || !user) {
-      console.error(
-        "User authentication error:",
-        userError
+      await userSupabase.auth.getUser(
+        accessToken
       );
 
+    if (userError || !user) {
       return NextResponse.json(
         {
           error:
@@ -99,13 +83,27 @@ export async function POST(request: Request) {
       );
     }
 
-    // --------------------------------------------------
-    // 5. Read membership plan
-    // --------------------------------------------------
+    // -----------------------------------------
+    // Admin client: server only
+    // -----------------------------------------
 
-    const body = await request.json();
+    const adminSupabase =
+      createClient(
+        supabaseUrl,
+        serviceRoleKey,
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        }
+      );
 
-    const planId = body?.planId;
+    const body =
+      await request.json();
+
+    const planId =
+      body?.planId;
 
     if (!planId) {
       return NextResponse.json(
@@ -117,21 +115,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // --------------------------------------------------
-    // 6. Get membership plan
-    // --------------------------------------------------
+    // -----------------------------------------
+    // Get plan using server client
+    // -----------------------------------------
 
     const {
       data: plan,
       error: planError,
     } =
-      await supabase
+      await adminSupabase
         .from("membership_plans")
         .select(
           `
           id,
           name,
-          description,
           price,
           duration_months,
           active
@@ -143,7 +140,7 @@ export async function POST(request: Request) {
 
     if (planError || !plan) {
       console.error(
-        "Membership plan lookup error:",
+        "Plan lookup error:",
         planError
       );
 
@@ -156,11 +153,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // --------------------------------------------------
-    // 7. Validate amount
-    // --------------------------------------------------
-
-    const amount = Number(plan.price);
+    const amount =
+      Number(plan.price);
 
     if (
       !Number.isFinite(amount) ||
@@ -175,15 +169,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // --------------------------------------------------
-    // 8. Create membership record
-    // --------------------------------------------------
+    // -----------------------------------------
+    // Create membership using service role
+    // -----------------------------------------
 
     const {
       data: membership,
       error: membershipError,
     } =
-      await supabase
+      await adminSupabase
         .from("memberships")
         .insert({
           user_id: user.id,
@@ -191,15 +185,7 @@ export async function POST(request: Request) {
           status: "pending",
           payment_status: "created",
         })
-        .select(
-          `
-          id,
-          user_id,
-          plan_id,
-          status,
-          payment_status
-          `
-        )
+        .select("id")
         .single();
 
     if (
@@ -207,7 +193,7 @@ export async function POST(request: Request) {
       !membership
     ) {
       console.error(
-        "Membership insert error:",
+        "Membership creation error:",
         membershipError
       );
 
@@ -220,9 +206,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // --------------------------------------------------
-    // 9. Create Cashfree order ID
-    // --------------------------------------------------
+    // -----------------------------------------
+    // Create Cashfree order ID
+    // -----------------------------------------
 
     const orderId =
       "FAMI_" +
@@ -230,15 +216,15 @@ export async function POST(request: Request) {
         .replace(/-/g, "")
         .substring(0, 20);
 
-    // --------------------------------------------------
-    // 10. Save Cashfree order ID
-    // --------------------------------------------------
+    // -----------------------------------------
+    // Save payment reference using service role
+    // -----------------------------------------
 
     const {
       data: savedMembership,
       error: referenceError,
     } =
-      await supabase
+      await adminSupabase
         .from("memberships")
         .update({
           payment_reference:
@@ -249,10 +235,7 @@ export async function POST(request: Request) {
           membership.id
         )
         .select(
-          `
-          id,
-          payment_reference
-          `
+          "id, payment_reference"
         )
         .single();
 
@@ -274,36 +257,25 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(
-      "Payment reference saved:",
-      savedMembership
-    );
+    // -----------------------------------------
+    // Use current request origin
+    // -----------------------------------------
 
-    // --------------------------------------------------
-    // 11. Website URL
-    // --------------------------------------------------
+    const requestUrl =
+      new URL(request.url);
 
     const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      "https://faminova-website-8wmn.vercel.app";
-
-    // --------------------------------------------------
-    // 12. Return URL
-    // --------------------------------------------------
+      requestUrl.origin;
 
     const returnUrl =
       `${baseUrl}/payment/success?order_id={order_id}`;
 
-    // --------------------------------------------------
-    // 13. Webhook / Notify URL
-    // --------------------------------------------------
-
     const notifyUrl =
       `${baseUrl}/api/cashfree/webhook`;
 
-    // --------------------------------------------------
-    // 14. Create Cashfree Sandbox order
-    // --------------------------------------------------
+    // -----------------------------------------
+    // Create Cashfree Sandbox order
+    // -----------------------------------------
 
     const cashfreeResponse =
       await fetch(
@@ -368,10 +340,6 @@ export async function POST(request: Request) {
         }
       );
 
-    // --------------------------------------------------
-    // 15. Read Cashfree response
-    // --------------------------------------------------
-
     const cashfreeData =
       await cashfreeResponse.json();
 
@@ -381,7 +349,7 @@ export async function POST(request: Request) {
         cashfreeData
       );
 
-      await supabase
+      await adminSupabase
         .from("memberships")
         .update({
           payment_status:
@@ -402,29 +370,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // --------------------------------------------------
-    // 16. Check payment session
-    // --------------------------------------------------
-
     if (
       !cashfreeData.payment_session_id
     ) {
-      console.error(
-        "Cashfree response missing payment_session_id:",
-        cashfreeData
-      );
-
-      await supabase
-        .from("memberships")
-        .update({
-          payment_status:
-            "failed",
-        })
-        .eq(
-          "id",
-          membership.id
-        );
-
       return NextResponse.json(
         {
           error:
@@ -434,30 +382,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // --------------------------------------------------
-    // 17. Mark payment order as created
-    // --------------------------------------------------
-
-    await supabase
-      .from("memberships")
-      .update({
-        payment_status:
-          "created",
-      })
-      .eq(
-        "id",
-        membership.id
-      );
-
-    // --------------------------------------------------
-    // 18. Return payment session
-    // --------------------------------------------------
-
     return NextResponse.json({
       success: true,
 
-      orderId:
-        orderId,
+      orderId,
 
       paymentSessionId:
         cashfreeData.payment_session_id,
