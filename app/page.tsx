@@ -47,9 +47,9 @@ const faqs = [
       "FamiNova is a digital fertility education and information platform designed to make reproductive-health information easier to understand.",
   },
   {
-    question: "What does the ₹149 membership provide?",
+    question: "What does the ₹199 membership provide?",
     answer:
-      "The ₹149 membership is intended for access to FamiNova's digital educational and member resources. It purchase or guarantee medical treatment, donor material, donor matching or biological material.",
+      "The ₹199 membership is intended for access to FamiNova's digital educational and member resources. It purchase or guarantee medical treatment, donor material, donor matching or biological material.",
   },
   {
     question: "Does FamiNova provide medical treatment?",
@@ -122,7 +122,7 @@ export default function Home() {
             href="#membership"
             className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
-            Join for ₹149
+            Join for ₹199
           </a>
         </div>
       </header>
@@ -370,7 +370,7 @@ export default function Home() {
 
             <div className="mt-8 flex items-end gap-3">
               <span className="text-6xl font-bold tracking-tight text-slate-950">
-                ₹149
+                ₹199
               </span>
               <span className="pb-2 text-slate-500">membership</span>
             </div>
@@ -473,7 +473,7 @@ export default function Home() {
               href="#membership"
               className="rounded-full bg-white px-7 py-4 text-center text-sm font-bold text-slate-950 transition hover:bg-slate-100"
             >
-              Join for ₹149
+              Join for ₹199
             </a>
           </div>
         </div>

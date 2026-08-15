@@ -1,278 +1,218 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
+import { supabase } from "../../lib/supabase";
 
 export default function RegisterPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function handleRegister(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitted(true);
+
+    setMessage("");
+    setError("");
+
+    if (!fullName.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setError("Please enter your email address.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must contain at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error: signUpError } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        data: {
+          full_name: fullName.trim(),
+        },
+      },
+    });
+
+    setLoading(false);
+
+    if (signUpError) {
+      setError(signUpError.message);
+      return;
+    }
+
+    setMessage(
+      "Registration successful. Please check your email and verify your account before logging in."
+    );
+
+    setFullName("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
   }
 
   return (
-    <main className="min-h-screen bg-[#fbfaf7] text-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-          <a href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 font-bold text-white">
-              F
+    <main className="min-h-screen bg-slate-50 px-5 py-12">
+      <div className="mx-auto max-w-md">
+        <div className="mb-8 text-center">
+          <Link
+            href="/"
+            className="text-2xl font-bold tracking-tight text-slate-950"
+          >
+            FamiNova
+          </Link>
+
+          <h1 className="mt-6 text-3xl font-bold text-slate-950">
+            Create your account
+          </h1>
+
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Create a FamiNova account to access available digital educational
+            and membership services.
+          </p>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm sm:p-8">
+          {error && (
+            <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+              {error}
+            </div>
+          )}
+
+          {message && (
+            <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleRegister} className="space-y-5">
+            <div>
+              <label
+                htmlFor="fullName"
+                className="mb-2 block text-sm font-semibold text-slate-800"
+              >
+                Full name
+              </label>
+
+              <input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                placeholder="Enter your full name"
+                autoComplete="name"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                required
+              />
             </div>
 
             <div>
-              <div className="text-xl font-bold">FamiNova</div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                Fertility Education
-              </div>
-            </div>
-          </a>
-
-          <a
-            href="/"
-            className="text-sm font-semibold text-slate-600 hover:text-slate-950"
-          >
-            ← Back to Home
-          </a>
-        </div>
-      </header>
-
-      {/* Registration */}
-      <section className="px-5 py-12 sm:py-16 lg:py-20">
-        <div className="mx-auto max-w-2xl">
-          <div className="mb-8 text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-700">
-              FamiNova Membership
-            </p>
-
-            <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
-              Create your account
-            </h1>
-
-            <p className="mx-auto mt-4 max-w-xl leading-7 text-slate-600">
-              Register to access FamiNova&apos;s digital educational and
-              membership services.
-            </p>
-          </div>
-
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm sm:p-10">
-            {submitted ? (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-2xl text-white">
-                  ✓
-                </div>
-
-                <h2 className="mt-5 text-2xl font-bold text-slate-950">
-                  Registration details received
-                </h2>
-
-                <p className="mt-3 leading-7 text-slate-600">
-                  This demonstration form has been submitted successfully.
-                  Account creation and secure authentication will be connected
-                  in the next stage.
-                </p>
-
-                <a
-                  href="/"
-                  className="mt-6 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800"
-                >
-                  Return to Home
-                </a>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Full Name */}
-                <div>
-                  <label
-                    htmlFor="fullName"
-                    className="mb-2 block text-sm font-bold text-slate-900"
-                  >
-                    Full Name
-                  </label>
-
-                  <input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    required
-                    autoComplete="name"
-                    placeholder="Enter your full name"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-                  />
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="mb-2 block text-sm font-bold text-slate-900"
-                  >
-                    Email Address
-                  </label>
-
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-                  />
-                </div>
-
-                {/* Mobile */}
-                <div>
-                  <label
-                    htmlFor="mobile"
-                    className="mb-2 block text-sm font-bold text-slate-900"
-                  >
-                    Mobile Number
-                  </label>
-
-                  <input
-                    id="mobile"
-                    name="mobile"
-                    type="tel"
-                    required
-                    autoComplete="tel"
-                    inputMode="tel"
-                    placeholder="+91 98765 43210"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-                  />
-                </div>
-
-                {/* Country */}
-                <div>
-                  <label
-                    htmlFor="country"
-                    className="mb-2 block text-sm font-bold text-slate-900"
-                  >
-                    Country
-                  </label>
-
-                  <select
-                    id="country"
-                    name="country"
-                    defaultValue="India"
-                    required
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-                  >
-                    <option value="India">India</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="mb-2 block text-sm font-bold text-slate-900"
-                  >
-                    Password
-                  </label>
-
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    minLength={8}
-                    autoComplete="new-password"
-                    placeholder="Create a password"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-                  />
-
-                  <p className="mt-2 text-xs text-slate-500">
-                    Use at least 8 characters.
-                  </p>
-                </div>
-
-                {/* Terms */}
-                <div className="rounded-2xl bg-slate-50 p-5">
-                  <label className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      name="terms"
-                      required
-                      className="mt-1 h-4 w-4 rounded border-slate-300"
-                    />
-
-                    <span className="text-sm leading-6 text-slate-600">
-                      I agree to the{" "}
-                      <a
-                        href="/terms"
-                        className="font-semibold text-emerald-700 hover:underline"
-                      >
-                        Terms &amp; Conditions
-                      </a>{" "}
-                      and{" "}
-                      <a
-                        href="/privacy"
-                        className="font-semibold text-emerald-700 hover:underline"
-                      >
-                        Privacy Policy
-                      </a>
-                      .
-                    </span>
-                  </label>
-                </div>
-
-                {/* Educational acknowledgement */}
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-                  <p className="text-sm leading-6 text-slate-700">
-                    FamiNova provides general educational and digital
-                    membership services. And guarantee
-                    medical treatment, pregnancy, donor matching, donor
-                    material, biological material or any specific fertility
-                    outcome.
-                  </p>
-                </div>
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  className="w-full rounded-xl bg-slate-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
-                >
-                  Create Account
-                </button>
-
-                <p className="text-center text-sm text-slate-500">
-                  Already have an account?{" "}
-                  <a
-                    href="/login"
-                    className="font-bold text-emerald-700 hover:underline"
-                  >
-                    Sign in
-                  </a>
-                </p>
-              </form>
-            )}
-          </div>
-
-          {/* Contact */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-slate-500">
-              Need help?{" "}
-              <a
-                href="/contact"
-                className="font-semibold text-emerald-700 hover:underline"
+              <label
+                htmlFor="email"
+                className="mb-2 block text-sm font-semibold text-slate-800"
               >
-                Contact FamiNova
-              </a>
-            </p>
-          </div>
-        </div>
-      </section>
+                Email address
+              </label>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-8 text-center">
-          <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} FamiNova. All rights reserved.
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-2 block text-sm font-semibold text-slate-800"
+              >
+                Password
+              </label>
+
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Minimum 8 characters"
+                autoComplete="new-password"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                required
+                minLength={8}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="mb-2 block text-sm font-semibold text-slate-800"
+              >
+                Confirm password
+              </label>
+
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
+                placeholder="Enter your password again"
+                autoComplete="new-password"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                required
+                minLength={8}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Creating account..." : "Create account"}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-slate-600">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-bold text-slate-950 underline underline-offset-4"
+            >
+              Login
+            </Link>
           </p>
         </div>
-      </footer>
+
+        <p className="mt-6 text-center text-xs leading-5 text-slate-500">
+          By creating an account, you acknowledge the applicable FamiNova
+          Terms and Privacy Policy.
+        </p>
+      </div>
     </main>
   );
 }
