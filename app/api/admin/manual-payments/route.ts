@@ -18,33 +18,69 @@ async function getAdminUser(request: Request) {
   const publishableKey =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  if (!supabaseUrl || !publishableKey) {
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (
+    !supabaseUrl ||
+    !publishableKey ||
+    !serviceRoleKey
+  ) {
     return null;
   }
 
-  const supabase = createClient(
-    supabaseUrl,
-    publishableKey
-  );
+  // Verify the logged-in user
+  const userSupabase =
+    createClient(
+      supabaseUrl,
+      publishableKey
+    );
 
   const {
     data: { user },
-    error,
-  } = await supabase.auth.getUser(token);
-  
-  console.log("LIVE LOGGED USER:", user?.email);
-console.log("LIVE ADMIN EMAIL:", process.env.ADMIN_EMAIL);
+    error: userError,
+  } =
+    await userSupabase.auth.getUser(
+      token
+    );
 
-  if (error || !user) {
+  if (
+    userError ||
+    !user
+  ) {
     return null;
   }
 
-  const adminEmail =
-    process.env.ADMIN_EMAIL?.toLowerCase();
+  // Server-only admin client
+  const adminSupabase =
+    createClient(
+      supabaseUrl,
+      serviceRoleKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+  // Check whether this user is in admin_users
+  const {
+    data: adminRecord,
+    error: adminError,
+  } =
+    await adminSupabase
+      .from("admin_users")
+      .select("user_id")
+      .eq(
+        "user_id",
+        user.id
+      )
+      .maybeSingle();
 
   if (
-    !adminEmail ||
-    user.email?.toLowerCase() !== adminEmail
+    adminError ||
+    !adminRecord
   ) {
     return null;
   }
@@ -52,7 +88,9 @@ console.log("LIVE ADMIN EMAIL:", process.env.ADMIN_EMAIL);
   return user;
 }
 
-export async function GET(request: Request) {
+export async function GET(
+  request: Request
+) {
   try {
     const admin =
       await getAdminUser(request);
@@ -60,7 +98,8 @@ export async function GET(request: Request) {
     if (!admin) {
       return NextResponse.json(
         {
-          error: "Admin access required.",
+          error:
+            "Admin access required.",
         },
         { status: 403 }
       );
@@ -72,7 +111,10 @@ export async function GET(request: Request) {
     const serviceRoleKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (
+      !supabaseUrl ||
+      !serviceRoleKey
+    ) {
       return NextResponse.json(
         {
           error:
@@ -97,26 +139,30 @@ export async function GET(request: Request) {
     const {
       data: payments,
       error,
-    } = await adminSupabase
-      .from("manual_payments")
-      .select(
-        `
-        id,
-        user_id,
-        membership_id,
-        order_id,
-        amount,
-        utr,
-        payment_status,
-        submitted_at,
-        verified_at,
-        admin_note,
-        created_at
-        `
-      )
-      .order("created_at", {
-        ascending: false,
-      });
+    } =
+      await adminSupabase
+        .from("manual_payments")
+        .select(
+          `
+          id,
+          user_id,
+          membership_id,
+          order_id,
+          amount,
+          utr,
+          payment_status,
+          submitted_at,
+          verified_at,
+          admin_note,
+          created_at
+          `
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          }
+        );
 
     if (error) {
       console.error(
@@ -135,7 +181,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      payments: payments ?? [],
+      payments:
+        payments ?? [],
     });
   } catch (error) {
     console.error(

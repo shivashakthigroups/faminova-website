@@ -18,11 +18,19 @@ async function getAdminUser(request: Request) {
   const publishableKey =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  if (!supabaseUrl || !publishableKey) {
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (
+    !supabaseUrl ||
+    !publishableKey ||
+    !serviceRoleKey
+  ) {
     return null;
   }
 
-  const supabase =
+  // Verify logged-in user
+  const userSupabase =
     createClient(
       supabaseUrl,
       publishableKey
@@ -30,20 +38,49 @@ async function getAdminUser(request: Request) {
 
   const {
     data: { user },
-    error,
+    error: userError,
   } =
-    await supabase.auth.getUser(token);
+    await userSupabase.auth.getUser(
+      token
+    );
 
-  if (error || !user) {
+  if (
+    userError ||
+    !user
+  ) {
     return null;
   }
 
-  const adminEmail =
-    process.env.ADMIN_EMAIL?.toLowerCase();
+  // Server-only admin client
+  const adminSupabase =
+    createClient(
+      supabaseUrl,
+      serviceRoleKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+  // Check admin_users table
+  const {
+    data: adminRecord,
+    error: adminError,
+  } =
+    await adminSupabase
+      .from("admin_users")
+      .select("user_id")
+      .eq(
+        "user_id",
+        user.id
+      )
+      .maybeSingle();
 
   if (
-    !adminEmail ||
-    user.email?.toLowerCase() !== adminEmail
+    adminError ||
+    !adminRecord
   ) {
     return null;
   }
@@ -51,7 +88,9 @@ async function getAdminUser(request: Request) {
   return user;
 }
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request
+) {
   try {
     const admin =
       await getAdminUser(request);
@@ -59,7 +98,8 @@ export async function POST(request: Request) {
     if (!admin) {
       return NextResponse.json(
         {
-          error: "Admin access required.",
+          error:
+            "Admin access required.",
         },
         { status: 403 }
       );
@@ -88,18 +128,26 @@ export async function POST(request: Request) {
       await request.json();
 
     const paymentId =
-      body?.paymentId;
+      String(
+        body?.paymentId || ""
+      ).trim();
 
     const action =
-      body?.action;
+      String(
+        body?.action || ""
+      ).trim();
 
     const adminNote =
-      String(body?.adminNote || "")
-        .trim();
+      String(
+        body?.adminNote || ""
+      ).trim();
 
     if (
       !paymentId ||
-      !["approve", "reject"].includes(action)
+      ![
+        "approve",
+        "reject",
+      ].includes(action)
     ) {
       return NextResponse.json(
         {
@@ -122,6 +170,7 @@ export async function POST(request: Request) {
         }
       );
 
+    // Load payment
     const {
       data: payment,
       error: paymentError,
@@ -135,7 +184,10 @@ export async function POST(request: Request) {
           payment_status
           `
         )
-        .eq("id", paymentId)
+        .eq(
+          "id",
+          paymentId
+        )
         .single();
 
     if (
@@ -151,6 +203,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // Already approved
     if (
       payment.payment_status ===
       "approved"
@@ -162,7 +215,17 @@ export async function POST(request: Request) {
       });
     }
 
-    if (action === "reject") {
+    // -------------------------
+    // REJECT
+    // -------------------------
+
+    if (
+      action ===
+      "reject"
+    ) {
+      const now =
+        new Date().toISOString();
+
       const {
         error: rejectError,
       } =
@@ -173,7 +236,7 @@ export async function POST(request: Request) {
               "rejected",
 
             verified_at:
-              new Date().toISOString(),
+              now,
 
             verified_by:
               admin.id,
@@ -217,9 +280,9 @@ export async function POST(request: Request) {
       });
     }
 
-    // -----------------------------
+    // -------------------------
     // APPROVE
-    // -----------------------------
+    // -------------------------
 
     const {
       data: membership,
@@ -228,7 +291,12 @@ export async function POST(request: Request) {
       await adminSupabase
         .from("memberships")
         .select(
-          "id, plan_id"
+          `
+          id,
+          plan_id,
+          status,
+          payment_status
+          `
         )
         .eq(
           "id",
@@ -286,12 +354,15 @@ export async function POST(request: Request) {
     expiresAt.setMonth(
       expiresAt.getMonth() +
         Number(
-          plan.duration_months || 1
+          plan.duration_months ||
+            1
         )
     );
 
+    // Activate membership
     const {
-      error: membershipUpdateError,
+      error:
+        membershipUpdateError,
     } =
       await adminSupabase
         .from("memberships")
@@ -319,6 +390,11 @@ export async function POST(request: Request) {
     if (
       membershipUpdateError
     ) {
+      console.error(
+        "Membership activation error:",
+        membershipUpdateError
+      );
+
       return NextResponse.json(
         {
           error:
@@ -328,8 +404,10 @@ export async function POST(request: Request) {
       );
     }
 
+    // Mark payment approved
     const {
-      error: paymentUpdateError,
+      error:
+        paymentUpdateError,
     } =
       await adminSupabase
         .from("manual_payments")
@@ -354,10 +432,15 @@ export async function POST(request: Request) {
     if (
       paymentUpdateError
     ) {
+      console.error(
+        "Payment approval update error:",
+        paymentUpdateError
+      );
+
       return NextResponse.json(
         {
           error:
-            "Membership activated, but payment record update failed.",
+            "Membership was activated, but payment record update failed.",
         },
         { status: 500 }
       );
