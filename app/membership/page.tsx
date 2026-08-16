@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 
 type MembershipPlan = {
@@ -38,25 +37,13 @@ type RawMembership = {
 };
 
 export default function MembershipPage() {
-  const router = useRouter();
-
-  const [plans, setPlans] =
-    useState<MembershipPlan[]>([]);
-
+  const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [currentMembership, setCurrentMembership] =
     useState<Membership | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [selectingPlan, setSelectingPlan] =
-    useState<string | null>(null);
-
-  const [error, setError] =
-    useState("");
-
-  const [message, setMessage] =
-    useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     loadMembershipData();
@@ -76,10 +63,6 @@ export default function MembershipPage() {
       window.location.href = "/login";
       return;
     }
-
-    // --------------------------------------------------
-    // Load active membership plans
-    // --------------------------------------------------
 
     const {
       data: planData,
@@ -107,21 +90,12 @@ export default function MembershipPage() {
         planError
       );
 
-      setError(
-        planError.message
-      );
-
+      setError(planError.message);
       setLoading(false);
       return;
     }
 
-    setPlans(
-      planData ?? []
-    );
-
-    // --------------------------------------------------
-    // Load user's latest membership
-    // --------------------------------------------------
+    setPlans(planData ?? []);
 
     const {
       data: membershipData,
@@ -146,16 +120,10 @@ export default function MembershipPage() {
         )
         `
       )
-      .eq(
-        "user_id",
-        user.id
-      )
-      .order(
-        "created_at",
-        {
-          ascending: false,
-        }
-      )
+      .eq("user_id", user.id)
+      .order("created_at", {
+        ascending: false,
+      })
       .limit(1)
       .maybeSingle();
 
@@ -165,10 +133,7 @@ export default function MembershipPage() {
         membershipError
       );
 
-      setError(
-        membershipError.message
-      );
-
+      setError(membershipError.message);
       setLoading(false);
       return;
     }
@@ -177,7 +142,7 @@ export default function MembershipPage() {
       const raw =
         membershipData as unknown as RawMembership;
 
-      let membershipPlan:
+      let plan:
         MembershipPlan | null = null;
 
       if (
@@ -185,11 +150,11 @@ export default function MembershipPage() {
           raw.membership_plans
         )
       ) {
-        membershipPlan =
+        plan =
           raw.membership_plans[0] ??
           null;
       } else {
-        membershipPlan =
+        plan =
           raw.membership_plans ??
           null;
       }
@@ -204,7 +169,7 @@ export default function MembershipPage() {
         expires_at:
           raw.expires_at,
         membership_plans:
-          membershipPlan,
+          plan,
       });
     } else {
       setCurrentMembership(null);
@@ -213,63 +178,15 @@ export default function MembershipPage() {
     setLoading(false);
   }
 
-  // --------------------------------------------------
-  // Open direct UPI payment page
-  // --------------------------------------------------
-
-  async function startUpiPayment(
-    planId: string
-  ) {
-    setSelectingPlan(planId);
-    setError("");
-    setMessage("");
-
-    try {
-      const {
-        data: { session },
-      } =
-        await supabase.auth.getSession();
-
-      if (!session?.user) {
-        window.location.href =
-          "/login";
-        return;
-      }
-
-      router.push(
-        `/payment/upi?plan_id=${encodeURIComponent(
-          planId
-        )}`
-      );
-    } catch (paymentError) {
-      console.error(
-        "UPI payment navigation error:",
-        paymentError
-      );
-
-      setError(
-        "Something went wrong while opening the UPI payment page."
-      );
-
-      setSelectingPlan(null);
-    }
-  }
-
-  // --------------------------------------------------
-  // Loading
-  // --------------------------------------------------
-
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="text-center">
-
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
 
           <p className="mt-4 text-sm text-slate-600">
             Loading membership options...
           </p>
-
         </div>
       </main>
     );
@@ -280,7 +197,6 @@ export default function MembershipPage() {
 
       {/* Header */}
       <header className="border-b border-slate-200 bg-white">
-
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
 
           <Link
@@ -309,7 +225,6 @@ export default function MembershipPage() {
           </div>
 
         </div>
-
       </header>
 
       {/* Hero */}
@@ -326,9 +241,8 @@ export default function MembershipPage() {
           </h1>
 
           <p className="mt-5 text-base leading-7 text-slate-600">
-            Select the membership option that suits
-            your needs and continue to the secure
-            direct UPI payment page.
+            Select the membership option that suits your needs
+            and continue to the direct UPI payment page.
           </p>
 
         </div>
@@ -340,12 +254,10 @@ export default function MembershipPage() {
 
         {error && (
           <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
-
             <strong>
               Something went wrong:
             </strong>{" "}
             {error}
-
           </div>
         )}
 
@@ -381,17 +293,13 @@ export default function MembershipPage() {
                 <p className="mt-1 text-sm text-slate-600">
                   Status:{" "}
                   <span className="font-semibold capitalize text-slate-900">
-                    {
-                      currentMembership.status
-                    }
+                    {currentMembership.status}
                   </span>
                 </p>
 
-                {currentMembership
-                  .status ===
+                {currentMembership.status ===
                   "active" &&
-                  currentMembership
-                    .expires_at && (
+                  currentMembership.expires_at && (
                     <p className="mt-2 text-sm text-slate-600">
 
                       Valid until:{" "}
@@ -429,21 +337,20 @@ export default function MembershipPage() {
 
             {currentMembership.status ===
               "pending" && (
-              <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
 
-                <p className="text-sm font-bold text-amber-900">
-                  Payment verification pending
-                </p>
+                  <p className="text-sm font-bold text-amber-900">
+                    Payment verification pending
+                  </p>
 
-                <p className="mt-2 text-sm leading-6 text-amber-800">
-                  If you have submitted your UPI
-                  transaction reference, your
-                  membership will be activated after
-                  the payment is verified.
-                </p>
+                  <p className="mt-2 text-sm leading-6 text-amber-800">
+                    If you have submitted your UPI transaction reference,
+                    your membership will be activated after the payment
+                    is verified.
+                  </p>
 
-              </div>
-            )}
+                </div>
+              )}
 
           </div>
 
@@ -457,8 +364,7 @@ export default function MembershipPage() {
           <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center">
 
             <p className="text-sm text-slate-600">
-              No membership plans are currently
-              available.
+              No membership plans are currently available.
             </p>
 
           </div>
@@ -506,9 +412,7 @@ export default function MembershipPage() {
 
                     <span className="ml-2 text-sm text-slate-500">
                       /{" "}
-                      {
-                        plan.duration_months
-                      }{" "}
+                      {plan.duration_months}{" "}
                       month
                       {plan.duration_months >
                       1
@@ -542,24 +446,14 @@ export default function MembershipPage() {
 
                   </ul>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      startUpiPayment(
-                        plan.id
-                      )
-                    }
-                    disabled={
-                      selectingPlan !==
-                      null
-                    }
-                    className="mt-8 w-full rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  <Link
+                    href={`/payment/upi?plan_id=${encodeURIComponent(
+                      plan.id
+                    )}`}
+                    className="mt-8 block w-full rounded-xl bg-slate-950 px-5 py-3.5 text-center text-sm font-bold text-white transition hover:bg-slate-800"
                   >
-                    {selectingPlan ===
-                    plan.id
-                      ? "Opening UPI Payment..."
-                      : "Pay Membership"}
-                  </button>
+                    Pay Membership
+                  </Link>
 
                 </div>
               )
@@ -570,7 +464,7 @@ export default function MembershipPage() {
 
       </section>
 
-      {/* Direct UPI Information */}
+      {/* UPI Info */}
       <section className="mx-auto max-w-6xl px-5 pb-8">
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6">
@@ -580,24 +474,21 @@ export default function MembershipPage() {
           </h2>
 
           <p className="mt-3 text-sm leading-7 text-slate-600">
-            After selecting a membership, you will
-            be shown the merchant UPI QR and the
-            exact membership amount. After making
-            the payment, submit the UPI Transaction
-            ID / UTR for verification.
+            After selecting a membership, you will be shown the merchant
+            UPI QR and the exact membership amount. After making the
+            payment, submit the UPI Transaction ID / UTR for verification.
           </p>
 
           <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
 
             <p className="text-sm font-semibold text-amber-900">
-              Membership activation is not automatic
-              from a submitted transaction number.
+              Membership activation is not automatic from a submitted
+              transaction number.
             </p>
 
             <p className="mt-2 text-sm leading-6 text-amber-800">
-              The payment reference and amount are
-              checked against the merchant payment
-              record before membership is approved.
+              The payment reference and amount are checked against the
+              merchant payment record before membership is approved.
             </p>
 
           </div>
@@ -616,26 +507,21 @@ export default function MembershipPage() {
           </h2>
 
           <p className="mt-3 text-sm leading-7 text-slate-600">
-            FamiNova membership provides digital
-            educational and member services according
-            to the selected membership plan.
+            FamiNova membership provides digital educational
+            and member services according to the selected plan.
           </p>
 
           <p className="mt-3 text-sm leading-7 text-slate-600">
-            Membership payments are accepted through
-            the displayed merchant UPI payment
-            option. Membership activation occurs
-            only after the submitted payment
-            reference and payment amount have been
-            manually verified against the merchant
-            payment record.
+            Membership payments are accepted through the displayed
+            merchant UPI option. Membership activation occurs only
+            after the submitted payment reference and payment amount
+            have been manually verified against the merchant payment record.
           </p>
 
           <p className="mt-3 text-sm leading-7 text-slate-600">
-            Membership does guarantee medical
-            treatment, pregnancy, fertility outcomes,
-            donor matching, or any specific medical
-            result.
+            Membership does guarantee medical treatment,
+            pregnancy, fertility outcomes, donor matching,
+            or any specific medical result.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-4 text-sm">
