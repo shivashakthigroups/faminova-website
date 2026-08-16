@@ -31,6 +31,9 @@ async function getAdminUser(request: Request) {
     data: { user },
     error,
   } = await supabase.auth.getUser(token);
+  
+  console.log("LIVE LOGGED USER:", user?.email);
+console.log("LIVE ADMIN EMAIL:", process.env.ADMIN_EMAIL);
 
   if (error || !user) {
     return null;
