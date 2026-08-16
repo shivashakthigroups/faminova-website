@@ -1,379 +1,512 @@
+import Link from "next/link";
+
+export const metadata = {
+  title: "Terms & Conditions | FamiNova",
+  description:
+    "Terms and Conditions governing the use of FamiNova and its digital membership services.",
+};
+
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[#fbfaf7] text-slate-900">
-      {/* Header */}
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      {/* HEADER */}
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-          <a href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 font-bold text-white">
-              F
-            </div>
-
-            <div>
-              <div className="text-xl font-bold">FamiNova</div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                Fertility Education
-              </div>
-            </div>
-          </a>
-
-          <a
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
+          <Link
             href="/"
-            className="text-sm font-semibold text-slate-600 hover:text-slate-950"
+            className="text-2xl font-black tracking-tight text-violet-700"
           >
-            ← Back to Home
-          </a>
+            FamiNova
+          </Link>
+
+          <Link
+            href="/"
+            className="text-sm font-semibold text-slate-600 hover:text-violet-700"
+          >
+            Back to Home
+          </Link>
         </div>
       </header>
 
-      {/* Terms */}
-      <section className="mx-auto max-w-4xl px-5 py-16 lg:py-24">
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm sm:p-10 lg:p-14">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-700">
-            FamiNova
+      {/* CONTENT */}
+      <section className="mx-auto max-w-5xl px-5 py-12 sm:py-16">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+          <p className="text-sm font-bold uppercase tracking-[0.15em] text-violet-600">
+            Legal
           </p>
 
-          <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
-            Terms &amp; Conditions
+          <h1 className="mt-3 text-4xl font-black tracking-tight">
+            Terms & Conditions
           </h1>
 
           <p className="mt-4 text-sm text-slate-500">
-            Last updated: August 15, 2026
+            Last updated: 16 August 2026
           </p>
 
-          <div className="mt-10 space-y-10 text-slate-600">
+          <div className="mt-10 space-y-10 text-sm leading-7 text-slate-700">
             {/* 1 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                1. Acceptance of Terms
-              </h2>
-
-              <p className="mt-4 leading-7">
-                By accessing or using the FamiNova website, you agree to these
-                Terms &amp; Conditions. If you do not agree with these terms,
-                please do not use the website or its services.
+            <Section title="1. Introduction">
+              <p>
+                Welcome to FamiNova. These Terms & Conditions govern
+                your access to and use of the FamiNova website,
+                accounts, digital membership services, educational
+                information and related features.
               </p>
-            </section>
+
+              <p>
+                By accessing FamiNova, creating an account, purchasing
+                a membership or using our services, you agree to these
+                Terms & Conditions.
+              </p>
+
+              <p>
+                If you do not agree with these terms, you should not
+                use the website or purchase a membership.
+              </p>
+            </Section>
 
             {/* 2 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                2. About FamiNova
-              </h2>
-
-              <p className="mt-4 leading-7">
-                FamiNova is an online platform intended to provide educational
-                and informational resources relating to fertility and
-                reproductive-health topics.
+            <Section title="2. Nature of FamiNova Services">
+              <p>
+                FamiNova provides digital educational information,
+                membership services, account management and related
+                online resources.
               </p>
 
-              <p className="mt-4 leading-7">
-                The specific services available through the website may change
-                from time to time.
+              <p>
+                Content made available through FamiNova is intended
+                for general educational and informational purposes.
               </p>
-            </section>
+
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                <p className="font-bold text-amber-900">
+                  Important Medical Disclaimer
+                </p>
+
+                <p className="mt-2 text-amber-900">
+                  FamiNova does not provide medical diagnosis,
+                  individual medical treatment, emergency medical
+                  services or guarantees of pregnancy, conception,
+                  fertility improvement or any particular medical or
+                  biological outcome.
+                </p>
+              </div>
+
+              <p>
+                Information provided through FamiNova should not be
+                used as a substitute for advice, diagnosis or
+                treatment from a qualified healthcare professional.
+                Users should consult an appropriately qualified
+                healthcare professional regarding individual medical
+                or fertility-related concerns.
+              </p>
+            </Section>
 
             {/* 3 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                3. Educational Information Only
-              </h2>
-
-              <p className="mt-4 leading-7">
-                Information provided through FamiNova is intended for general
-                educational and informational purposes.
+            <Section title="3. Account Registration">
+              <p>
+                Certain FamiNova services require you to create an
+                account. You agree to provide accurate and current
+                information when registering and maintaining your
+                profile.
               </p>
 
-              <p className="mt-4 leading-7">
-                It is medical advice and does replace consultation
-                with a qualified healthcare professional.
+              <p>
+                You are responsible for maintaining the confidentiality
+                of your login credentials and for activity performed
+                through your account.
               </p>
 
-              <p className="mt-4 leading-7">
-                You should seek appropriate professional medical advice for
-                individual health, fertility or reproductive-health concerns.
+              <p>
+                You should notify FamiNova if you believe your account
+                has been accessed without authorization.
               </p>
-            </section>
+            </Section>
 
             {/* 4 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                4. Membership
-              </h2>
-
-              <p className="mt-4 leading-7">
-                FamiNova may offer paid digital membership services. Where
-                applicable, the membership fee provides access to the specific
-                digital educational resources described on the membership page
-                at the time of purchase.
+            <Section title="4. Membership">
+              <p>
+                FamiNova may offer paid digital membership plans.
+                Membership features, duration, pricing and included
+                services will be displayed on the website before
+                payment.
               </p>
 
-              <p className="mt-4 leading-7">
-                Membership does by itself provide or guarantee medical
-                treatment, fertility treatment, pregnancy, donor material,
-                biological material, donor matching or any particular medical
-                outcome.
+              <p>
+                Membership access begins only after the applicable
+                payment has been successfully verified and the
+                membership has been activated by FamiNova.
               </p>
-            </section>
+
+              <p>
+                Membership does constitute a purchase of any
+                guaranteed medical result or fertility outcome.
+              </p>
+            </Section>
 
             {/* 5 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                5. User Information
-              </h2>
-
-              <p className="mt-4 leading-7">
-                You agree to provide accurate information when creating an
-                account, submitting an enquiry or purchasing a service.
+            <Section title="5. Payments and UPI Verification">
+              <p>
+                FamiNova may accept membership payments through UPI or
+                other payment methods displayed on the website.
               </p>
 
-              <p className="mt-4 leading-7">
-                You are responsible for maintaining the confidentiality of
-                your account credentials and for activity carried out through
-                your account.
+              <p>
+                Where manual UPI verification is used, customers may
+                be required to provide the UPI transaction reference
+                number or UTR after completing payment.
               </p>
-            </section>
+
+              <p>
+                Submission of a UTR or transaction reference does not
+                by itself constitute confirmation that payment has
+                been received.
+              </p>
+
+              <p>
+                FamiNova may verify the transaction against its
+                merchant or bank payment records before activating a
+                membership.
+              </p>
+
+              <p>
+                Providing a false, altered, duplicate or misleading
+                payment reference may result in rejection of the
+                payment request and restriction or suspension of the
+                associated account.
+              </p>
+            </Section>
 
             {/* 6 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                6. Prohibited Use
-              </h2>
-
-              <p className="mt-4 leading-7">
-                You agree not to use FamiNova to:
+            <Section title="6. Payment Verification">
+              <p>
+                Payments submitted for manual verification may remain
+                in a pending or submitted status until reviewed.
               </p>
 
-              <ul className="mt-4 list-disc space-y-2 pl-6 leading-7">
-                <li>Break or attempt to break applicable laws</li>
-                <li>Submit fraudulent or misleading information</li>
-                <li>Impersonate another person</li>
-                <li>Interfere with website security</li>
-                <li>Attempt unauthorised access to accounts or systems</li>
-                <li>Upload malicious software or harmful content</li>
-                <li>Abuse, threaten or harass other users or staff</li>
-              </ul>
-            </section>
+              <p>
+                Membership activation occurs only after payment is
+                verified as successfully received.
+              </p>
+
+              <p>
+                If a submitted payment cannot be verified, FamiNova
+                may reject the payment verification request and may
+                ask the customer to provide additional transaction
+                information.
+              </p>
+            </Section>
 
             {/* 7 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                7. Intellectual Property
-              </h2>
-
-              <p className="mt-4 leading-7">
-                Unless otherwise stated, the FamiNova website, branding,
-                logos, text, graphics, design and original educational
-                materials are owned by or licensed to FamiNova.
+            <Section title="7. Refunds and Cancellations">
+              <p>
+                Refund eligibility, cancellation requirements and
+                applicable processing procedures are governed by the
+                FamiNova Refund Policy.
               </p>
 
-              <p className="mt-4 leading-7">
-                You may not reproduce, distribute, sell, modify or commercially
-                exploit our content without prior written permission.
+              <p>
+                Please review the Refund Policy before purchasing a
+                membership.
               </p>
-            </section>
+
+              <Link
+                href="/refund"
+                className="inline-flex font-bold text-violet-700 hover:text-violet-900"
+              >
+                View Refund Policy →
+              </Link>
+            </Section>
 
             {/* 8 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                8. Payments
-              </h2>
-
-              <p className="mt-4 leading-7">
-                If paid services are offered, applicable prices and payment
-                terms will be displayed before purchase.
+            <Section title="8. Membership Duration and Expiry">
+              <p>
+                Paid memberships remain active for the duration shown
+                for the selected membership plan, beginning from the
+                applicable activation date.
               </p>
 
-              <p className="mt-4 leading-7">
-                Payments may be processed by third-party payment providers.
-                Additional terms from those payment providers may apply.
+              <p>
+                When a membership expires, access to membership-only
+                features may end or become restricted unless the
+                membership is renewed.
               </p>
-            </section>
+            </Section>
 
             {/* 9 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                9. Refunds and Cancellations
-              </h2>
+            <Section title="9. Acceptable Use">
+              <p>You agree not to:</p>
 
-              <p className="mt-4 leading-7">
-                Refunds and cancellations are governed by the FamiNova Refund
-                Policy applicable to the service purchased.
-              </p>
+              <ul className="list-disc space-y-2 pl-6">
+                <li>
+                  Use FamiNova for unlawful, fraudulent or abusive
+                  purposes.
+                </li>
 
-              <p className="mt-4 leading-7">
-                Please review the Refund Policy before completing a purchase.
-              </p>
-            </section>
+                <li>
+                  Submit false or misleading payment information.
+                </li>
+
+                <li>
+                  Attempt to gain unauthorized access to another
+                  person's account or administrative systems.
+                </li>
+
+                <li>
+                  Interfere with the operation or security of the
+                  website.
+                </li>
+
+                <li>
+                  Copy, scrape, reproduce or redistribute protected
+                  FamiNova content without authorization.
+                </li>
+
+                <li>
+                  Use automated systems to misuse or overload the
+                  website.
+                </li>
+              </ul>
+            </Section>
 
             {/* 10 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                10. Third-Party Services
-              </h2>
-
-              <p className="mt-4 leading-7">
-                FamiNova may use third-party services for hosting, payments,
-                analytics, communications, security and other technical
-                functions.
+            <Section title="10. Suspension and Termination">
+              <p>
+                FamiNova may suspend or restrict an account where
+                reasonably necessary to protect the platform, other
+                users or FamiNova from fraud, security threats,
+                unlawful activity or material violations of these
+                Terms.
               </p>
 
-              <p className="mt-4 leading-7">
-                FamiNova is not responsible for interruptions or failures
-                caused solely by third-party services.
+              <p>
+                Where appropriate, users may contact FamiNova regarding
+                an account restriction or payment verification issue.
               </p>
-            </section>
+            </Section>
 
             {/* 11 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                11. Availability
-              </h2>
-
-              <p className="mt-4 leading-7">
-                We aim to keep the website available and functioning properly,
-                but we do not guarantee uninterrupted or error-free access at
-                all times.
+            <Section title="11. Educational Content">
+              <p>
+                FamiNova aims to provide useful educational
+                information, but information may not apply to every
+                individual situation.
               </p>
-            </section>
+
+              <p>
+                Medical and scientific knowledge may change over time.
+                Users should obtain professional medical advice before
+                making healthcare decisions.
+              </p>
+            </Section>
 
             {/* 12 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                12. Limitation of Liability
-              </h2>
-
-              <p className="mt-4 leading-7">
-                To the extent permitted by applicable law, FamiNova will not
-                be responsible for losses arising from reliance on general
-                educational information, temporary website unavailability,
-                third-party service failures or circumstances beyond our
-                reasonable control.
+            <Section title="12. No Guarantee of Results">
+              <p>
+                Individual health, reproductive and fertility outcomes
+                depend on many factors outside the control of
+                FamiNova.
               </p>
-            </section>
+
+              <p>
+                FamiNova does promise or guarantee conception,
+                pregnancy, childbirth, treatment success or any other
+                particular health, fertility or biological result.
+              </p>
+            </Section>
 
             {/* 13 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                13. Medical Guarantee
-              </h2>
-
-              <p className="mt-4 leading-7">
-                FamiNova does guarantee fertility, pregnancy, treatment
-                results, medical outcomes or any particular health result.
+            <Section title="13. Intellectual Property">
+              <p>
+                Unless otherwise stated, the FamiNova name, branding,
+                website design, original text, graphics and other
+                original platform content are owned by or licensed to
+                FamiNova and are protected by applicable intellectual
+                property laws.
               </p>
-            </section>
+
+              <p>
+                Membership does not transfer ownership of FamiNova
+                intellectual property to the member.
+              </p>
+            </Section>
 
             {/* 14 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                14. Changes to These Terms
-              </h2>
-
-              <p className="mt-4 leading-7">
-                We may update these Terms &amp; Conditions from time to time.
-                Updated terms will be published on this page with a revised
-                date.
+            <Section title="14. Third-Party Services">
+              <p>
+                FamiNova may rely on third-party technology providers
+                for services such as website hosting, authentication,
+                database infrastructure, communications or payment
+                processing.
               </p>
-            </section>
+
+              <p>
+                Third-party services may be subject to their own terms,
+                privacy policies and availability.
+              </p>
+            </Section>
 
             {/* 15 */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-950">
-                15. Governing Law
-              </h2>
-
-              <p className="mt-4 leading-7">
-                These Terms &amp; Conditions are intended to operate subject to
-                applicable laws and regulations. The final governing-law and
-                jurisdiction provisions should be reviewed and confirmed by
-                appropriate legal counsel before the website begins commercial
-                operations.
-              </p>
-            </section>
-
-            {/* Contact */}
-            <section className="rounded-2xl bg-slate-50 p-6">
-              <h2 className="text-2xl font-bold text-slate-950">
-                16. Contact FamiNova
-              </h2>
-
-              <p className="mt-4 leading-7">
-                If you have questions about these Terms &amp; Conditions,
-                contact us:
+            <Section title="15. Availability of the Website">
+              <p>
+                We aim to keep FamiNova available and functioning
+                reliably. However, uninterrupted availability cannot
+                be guaranteed.
               </p>
 
-              <div className="mt-5 space-y-2 text-sm">
-                <p>
-                  <strong>Email:</strong>{" "}
+              <p>
+                Access may occasionally be interrupted because of
+                maintenance, upgrades, internet failures, security
+                events or circumstances outside our reasonable
+                control.
+              </p>
+            </Section>
+
+            {/* 16 */}
+            <Section title="16. Limitation of Liability">
+              <p>
+                To the extent permitted by applicable law, FamiNova
+                will not be responsible for indirect, incidental or
+                consequential losses arising solely from reliance on
+                general educational information available through the
+                platform.
+              </p>
+
+              <p>
+                Nothing in these Terms is intended to exclude or limit
+                any liability or consumer right that cannot lawfully
+                be excluded or limited.
+              </p>
+            </Section>
+
+            {/* 17 */}
+            <Section title="17. Privacy">
+              <p>
+                Personal information collected through FamiNova is
+                handled in accordance with our Privacy Policy and
+                applicable requirements.
+              </p>
+
+              <Link
+                href="/privacy"
+                className="inline-flex font-bold text-violet-700 hover:text-violet-900"
+              >
+                View Privacy Policy →
+              </Link>
+            </Section>
+
+            {/* 18 */}
+            <Section title="18. Changes to These Terms">
+              <p>
+                FamiNova may update these Terms & Conditions when
+                necessary to reflect changes to the platform, services
+                or applicable requirements.
+              </p>
+
+              <p>
+                The latest version will be published on this page with
+                an updated revision date.
+              </p>
+            </Section>
+
+            {/* 19 */}
+            <Section title="19. Applicable Law">
+              <p>
+                These Terms are intended to operate in accordance with
+                applicable laws of India, including applicable
+                consumer protection, electronic commerce and data
+                protection requirements.
+              </p>
+
+              <p>
+                Nothing in these Terms limits rights available to a
+                consumer under applicable law.
+              </p>
+            </Section>
+
+            {/* 20 */}
+            <Section title="20. Contact Us">
+              <p>
+                Questions regarding these Terms, membership or payment
+                verification can be sent to:
+              </p>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <p className="font-black text-slate-950">
+                  FamiNova
+                </p>
+
+                <p className="mt-2">
+                  Email:{" "}
                   <a
                     href="mailto:shivashakthigroups01@gmail.com"
-                    className="font-semibold text-emerald-700 hover:underline"
+                    className="font-bold text-violet-700 hover:text-violet-900"
                   >
                     shivashakthigroups01@gmail.com
                   </a>
                 </p>
 
-                <p>
-                  <strong>Phone:</strong>{" "}
-                  <a
-                    href="tel:+919972016119"
-                    className="font-semibold text-emerald-700 hover:underline"
-                  >
-                    +91 99720 16119
-                  </a>
-                </p>
-
-                <p>
-                  <strong>Website:</strong>{" "}
-                  <a
-                    href="https://www.faminova.in"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-emerald-700 hover:underline"
-                  >
-                    www.faminova.in
-                  </a>
+                <p className="mt-1">
+                  Website: faminova.in
                 </p>
               </div>
-            </section>
+            </Section>
+          </div>
 
-            <div className="border-t border-slate-200 pt-8">
-              <a
-                href="/"
-                className="inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+          {/* BOTTOM LINKS */}
+          <div className="mt-12 border-t border-slate-200 pt-8">
+            <div className="flex flex-wrap gap-5 text-sm font-semibold">
+              <Link
+                href="/privacy"
+                className="text-violet-700 hover:text-violet-900"
               >
-                ← Return to FamiNova
-              </a>
+                Privacy Policy
+              </Link>
+
+              <Link
+                href="/refund"
+                className="text-violet-700 hover:text-violet-900"
+              >
+                Refund Policy
+              </Link>
+
+              <Link
+                href="/contact"
+                className="text-violet-700 hover:text-violet-900"
+              >
+                Contact Us
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* FOOTER */}
       <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-10">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-slate-500">
-              © {new Date().getFullYear()} FamiNova. All rights reserved.
-            </p>
-
-            <div className="flex gap-5 text-sm text-slate-500">
-              <a href="/privacy" className="hover:text-slate-950">
-                Privacy
-              </a>
-
-              <a href="/refund" className="hover:text-slate-950">
-                Refund Policy
-              </a>
-
-              <a href="/contact" className="hover:text-slate-950">
-                Contact
-              </a>
-            </div>
-          </div>
+        <div className="mx-auto max-w-5xl px-5 py-8 text-center text-xs leading-6 text-slate-500">
+          © {new Date().getFullYear()} FamiNova. All rights reserved.
         </div>
       </footer>
     </main>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <h2 className="text-xl font-black text-slate-950">
+        {title}
+      </h2>
+
+      <div className="mt-4 space-y-4">
+        {children}
+      </div>
+    </section>
   );
 }
