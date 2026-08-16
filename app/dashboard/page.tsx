@@ -693,3 +693,9 @@ export default function DashboardPage() {
     </main>
   );
 }
+<Link
+  href="/payments"
+  className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-bold text-slate-900 transition hover:bg-slate-50"
+>
+  Payment History
+</Link>
