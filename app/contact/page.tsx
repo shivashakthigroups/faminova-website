@@ -1,276 +1,248 @@
+import Link from "next/link";
+
+export const metadata = {
+  title: "Contact Us | FamiNova",
+  description:
+    "Contact FamiNova for membership, account, payment verification and general support.",
+};
+
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-[#fbfaf7] text-slate-900">
-      {/* Header */}
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      {/* HEADER */}
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-          <a href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 font-bold text-white">
-              F
-            </div>
-
-            <div>
-              <div className="text-xl font-bold">FamiNova</div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                Fertility Education
-              </div>
-            </div>
-          </a>
-
-          <a
+          <Link
             href="/"
-            className="text-sm font-semibold text-slate-600 hover:text-slate-950"
+            className="text-2xl font-black tracking-tight text-violet-700"
           >
-            ← Back to Home
-          </a>
+            FamiNova
+          </Link>
+
+          <Link
+            href="/"
+            className="text-sm font-semibold text-slate-600 transition hover:text-violet-700"
+          >
+            Back to Home
+          </Link>
         </div>
       </header>
 
-      {/* Main */}
-      <section className="mx-auto max-w-6xl px-5 py-20 lg:py-28">
-        <div className="grid gap-12 lg:grid-cols-2">
-          {/* Contact Information */}
-          <div>
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-700">
-              Contact FamiNova
-            </p>
+      {/* HERO */}
+      <section className="relative overflow-hidden">
+        <div className="absolute -left-32 top-0 h-80 w-80 rounded-full bg-violet-100 blur-3xl" />
+        <div className="absolute -right-24 top-20 h-80 w-80 rounded-full bg-fuchsia-100 blur-3xl" />
 
-            <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-950 sm:text-6xl">
-              We&apos;re here to help.
-            </h1>
+        <div className="relative mx-auto max-w-6xl px-5 py-16 text-center sm:py-20">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-violet-600">
+            Support
+          </p>
 
-            <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
-              Have a question about FamiNova, our educational resources or
-              membership? Contact our support team and we&apos;ll review your
-              enquiry.
-            </p>
+          <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
+            Contact FamiNova
+          </h1>
 
-            <div className="mt-10 space-y-5">
-              {/* Email */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Email
-                </p>
-
-                <a
-                  href="mailto:shivashakthigroups01@gmail.com"
-                  className="mt-2 block break-all font-semibold text-slate-950 hover:text-emerald-700"
-                >
-                  shivashakthigroups01@gmail.com
-                </a>
-              </div>
-
-              {/* Mobile */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Mobile / WhatsApp
-                </p>
-
-                <a
-                  href="tel:+919972016119"
-                  className="mt-2 block font-semibold text-slate-950 hover:text-emerald-700"
-                >
-                  +91 99720 16119
-                </a>
-
-                <a
-                  href="https://wa.me/919972016119"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
-                >
-                  Chat on WhatsApp
-                </a>
-              </div>
-
-              {/* Support */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Support
-                </p>
-
-                <p className="mt-2 text-slate-600">
-                  For membership, website and educational-resource enquiries,
-                  please contact us by email, phone or WhatsApp.
-                </p>
-              </div>
-
-              {/* Important */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Important
-                </p>
-
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  FamiNova provides educational information and
-                  provide diagnosis, medical treatment or emergency medical
-                  services.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Form */}
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-xl sm:p-10">
-            <h2 className="text-2xl font-bold text-slate-950">
-              Send us a message
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Complete the form below and our team will review your enquiry.
-            </p>
-
-            <form className="mt-8 space-y-5">
-              <div>
-                <label
-                  htmlFor="name"
-                  className="mb-2 block text-sm font-semibold text-slate-800"
-                >
-                  Full name
-                </label>
-
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="Enter your name"
-                  required
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-semibold text-slate-800"
-                >
-                  Email address
-                </label>
-
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="phone"
-                  className="mb-2 block text-sm font-semibold text-slate-800"
-                >
-                  Mobile number
-                </label>
-
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  placeholder="Enter your mobile number"
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="subject"
-                  className="mb-2 block text-sm font-semibold text-slate-800"
-                >
-                  Enquiry type
-                </label>
-
-                <select
-                  id="subject"
-                  name="subject"
-                  required
-                  defaultValue=""
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
-                >
-                  <option value="" disabled>
-                    Select an option
-                  </option>
-                  <option value="membership">Membership</option>
-                  <option value="education">Educational resources</option>
-                  <option value="website">Website support</option>
-                  <option value="general">General enquiry</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="message"
-                  className="mb-2 block text-sm font-semibold text-slate-800"
-                >
-                  Message
-                </label>
-
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  placeholder="How can we help?"
-                  required
-                  className="w-full resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
-                />
-              </div>
-
-              <label className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  required
-                  className="mt-1 h-4 w-4 rounded border-slate-300"
-                />
-
-                <span className="text-xs leading-5 text-slate-500">
-                  I understand that FamiNova is an educational platform and
-                  that submitting this form does not create a doctor-patient
-                  relationship.
-                </span>
-              </label>
-
-              <button
-                type="submit"
-                className="w-full rounded-full bg-slate-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-slate-800"
-              >
-                Send Enquiry
-              </button>
-
-              <p className="text-center text-xs leading-5 text-slate-400">
-                Please do not include sensitive medical information in this
-                contact form.
-              </p>
-            </form>
-          </div>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-slate-600">
+            Need help with your account, membership or payment
+            verification? Our support contact details are available
+            below.
+          </p>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-10">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-slate-500">
-              © {new Date().getFullYear()} FamiNova. All rights reserved.
+      {/* SUPPORT CARDS */}
+      <section className="mx-auto max-w-6xl px-5 pb-16">
+        <div className="grid gap-5 md:grid-cols-3">
+          <SupportCard
+            icon="01"
+            title="Account Support"
+            text="Help with registration, login, profile access and account-related questions."
+          />
+
+          <SupportCard
+            icon="02"
+            title="Membership Support"
+            text="Questions regarding membership activation, status, expiry or renewal."
+          />
+
+          <SupportCard
+            icon="03"
+            title="Payment Support"
+            text="Help with UPI payment submission, UTR verification and payment status."
+          />
+        </div>
+
+        {/* CONTACT BOX */}
+        <div className="mt-8 grid gap-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2 sm:p-9">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.15em] text-violet-600">
+              Email Support
             </p>
 
-            <div className="flex gap-5 text-sm text-slate-500">
-              <a href="/privacy" className="hover:text-slate-950">
-                Privacy
-              </a>
+            <h2 className="mt-3 text-3xl font-black">
+              How can we help?
+            </h2>
 
-              <a href="/terms" className="hover:text-slate-950">
-                Terms
-              </a>
+            <p className="mt-4 max-w-lg text-sm leading-7 text-slate-600">
+              Send us an email with enough information for us to
+              identify your account or payment issue.
+            </p>
 
-              <a href="/refund" className="hover:text-slate-950">
-                Refund Policy
-              </a>
+            <a
+              href="mailto:shivashakthigroups01@gmail.com"
+              className="mt-7 inline-flex rounded-xl bg-slate-950 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-violet-700"
+            >
+              Email FamiNova Support
+            </a>
+          </div>
+
+          <div className="rounded-2xl bg-slate-50 p-6">
+            <p className="text-sm font-black text-slate-950">
+              Official Support Email
+            </p>
+
+            <a
+              href="mailto:shivashakthigroups01@gmail.com"
+              className="mt-3 block break-all font-bold text-violet-700 hover:text-violet-900"
+            >
+              shivashakthigroups01@gmail.com
+            </a>
+
+            <div className="mt-6 border-t border-slate-200 pt-5">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                Website
+              </p>
+
+              <p className="mt-2 font-semibold">
+                faminova.in
+              </p>
             </div>
           </div>
         </div>
+
+        {/* PAYMENT HELP */}
+        <div className="mt-8 rounded-3xl border border-violet-200 bg-violet-50 p-6 sm:p-9">
+          <h2 className="text-2xl font-black text-slate-950">
+            Contacting us about a payment?
+          </h2>
+
+          <p className="mt-3 text-sm leading-7 text-slate-700">
+            To help us identify your payment, include the following
+            information in your email:
+          </p>
+
+          <ul className="mt-5 grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
+            <Item text="Your registered FamiNova email" />
+            <Item text="Your name" />
+            <Item text="Membership plan" />
+            <Item text="Payment amount" />
+            <Item text="UPI transaction reference / UTR" />
+            <Item text="Payment date" />
+          </ul>
+        </div>
+
+        {/* SECURITY WARNING */}
+        <div className="mt-8 rounded-3xl border border-red-200 bg-red-50 p-6 sm:p-8">
+          <p className="text-sm font-black uppercase tracking-[0.15em] text-red-700">
+            Payment Safety
+          </p>
+
+          <h2 className="mt-3 text-xl font-black text-red-950">
+            Never share your UPI PIN, OTP or banking password.
+          </h2>
+
+          <p className="mt-3 text-sm leading-7 text-red-900">
+            FamiNova will never ask you to provide your UPI PIN,
+            ATM PIN, card PIN, OTP, internet banking password or
+            similar secret banking credentials for payment
+            verification.
+          </p>
+        </div>
+
+        {/* MEDICAL NOTICE */}
+        <div className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 p-6 sm:p-8">
+          <p className="text-sm font-black uppercase tracking-[0.15em] text-amber-800">
+            Medical Notice
+          </p>
+
+          <p className="mt-3 text-sm leading-7 text-amber-950">
+            FamiNova provides digital educational and membership
+            services. Our support email is not an emergency medical
+            service and should not be used for urgent medical care,
+            diagnosis or treatment. For medical concerns, contact an
+            appropriately qualified healthcare professional.
+          </p>
+        </div>
+
+        {/* LINKS */}
+        <div className="mt-10 flex flex-wrap justify-center gap-5 border-t border-slate-200 pt-8 text-sm font-semibold">
+          <Link
+            href="/terms"
+            className="text-violet-700 hover:text-violet-900"
+          >
+            Terms & Conditions
+          </Link>
+
+          <Link
+            href="/privacy"
+            className="text-violet-700 hover:text-violet-900"
+          >
+            Privacy Policy
+          </Link>
+
+          <Link
+            href="/refund"
+            className="text-violet-700 hover:text-violet-900"
+          >
+            Refund Policy
+          </Link>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-5 py-8 text-center text-xs leading-6 text-slate-500">
+          © {new Date().getFullYear()} FamiNova. All rights reserved.
+        </div>
       </footer>
     </main>
+  );
+}
+
+function SupportCard({
+  icon,
+  title,
+  text,
+}: {
+  icon: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-xs font-black text-violet-700">
+        {icon}
+      </div>
+
+      <h2 className="mt-5 text-lg font-black">
+        {title}
+      </h2>
+
+      <p className="mt-2 text-sm leading-6 text-slate-600">
+        {text}
+      </p>
+    </div>
+  );
+}
+
+function Item({ text }: { text: string }) {
+  return (
+    <li className="flex items-start gap-3 rounded-xl bg-white/70 p-3">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">
+        ✓
+      </span>
+
+      <span>{text}</span>
+    </li>
   );
 }
