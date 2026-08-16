@@ -3,18 +3,28 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
+    // --------------------------------------------------
+    // 1. Check Authorization header
+    // --------------------------------------------------
+
     const authorization =
       request.headers.get("authorization");
 
     if (!authorization?.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: "Authentication required." },
+        {
+          error: "Authentication required.",
+        },
         { status: 401 }
       );
     }
 
     const accessToken =
       authorization.replace("Bearer ", "");
+
+    // --------------------------------------------------
+    // 2. Environment variables
+    // --------------------------------------------------
 
     const supabaseUrl =
       process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -30,6 +40,10 @@ export async function POST(request: Request) {
       !publishableKey ||
       !serviceRoleKey
     ) {
+      console.error(
+        "Manual payment server configuration missing."
+      );
+
       return NextResponse.json(
         {
           error:
@@ -39,19 +53,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // User client - only for verifying login
+    // --------------------------------------------------
+    // 3. Verify logged-in user
+    // --------------------------------------------------
+
     const userSupabase =
       createClient(
         supabaseUrl,
-        publishableKey,
-        {
-          global: {
-            headers: {
-              Authorization:
-                `Bearer ${accessToken}`,
-            },
-          },
-        }
+        publishableKey
       );
 
     const {
@@ -63,6 +72,11 @@ export async function POST(request: Request) {
       );
 
     if (userError || !user) {
+      console.error(
+        "User verification error:",
+        userError
+      );
+
       return NextResponse.json(
         {
           error:
@@ -72,11 +86,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // --------------------------------------------------
+    // 4. Read submitted data
+    // --------------------------------------------------
+
     const body =
       await request.json();
 
     const planId =
-      body?.planId;
+      String(body?.planId || "")
+        .trim();
 
     const utr =
       String(body?.utr || "")
@@ -92,20 +111,30 @@ export async function POST(request: Request) {
       );
     }
 
-    if (
-      !utr ||
-      utr.length < 6
-    ) {
+    if (!utr) {
       return NextResponse.json(
         {
           error:
-            "A valid UPI Transaction ID / UTR is required.",
+            "UPI Transaction ID / UTR is required.",
         },
         { status: 400 }
       );
     }
 
-    // Server-only Supabase client
+    if (utr.length < 6) {
+      return NextResponse.json(
+        {
+          error:
+            "Please enter a valid UPI Transaction ID / UTR.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // --------------------------------------------------
+    // 5. Server-only Supabase client
+    // --------------------------------------------------
+
     const adminSupabase =
       createClient(
         supabaseUrl,
@@ -118,7 +147,10 @@ export async function POST(request: Request) {
         }
       );
 
-    // Get the selected membership plan
+    // --------------------------------------------------
+    // 6. Check selected membership plan
+    // --------------------------------------------------
+
     const {
       data: plan,
       error: planError,
@@ -126,16 +158,33 @@ export async function POST(request: Request) {
       await adminSupabase
         .from("membership_plans")
         .select(
-          "id, name, price, duration_months, active"
+          `
+          id,
+          name,
+          price,
+          duration_months,
+          active
+          `
         )
-        .eq("id", planId)
-        .eq("active", true)
+        .eq(
+          "id",
+          planId
+        )
+        .eq(
+          "active",
+          true
+        )
         .single();
 
     if (
       planError ||
       !plan
     ) {
+      console.error(
+        "Membership plan lookup error:",
+        planError
+      );
+
       return NextResponse.json(
         {
           error:
@@ -161,20 +210,151 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create membership in pending state
+    // --------------------------------------------------
+    // 7. Check if this UTR was already submitted
+    // --------------------------------------------------
+
+    const {
+      data: existingPayment,
+      error: existingPaymentError,
+    } =
+      await adminSupabase
+        .from("manual_payments")
+        .select(
+          `
+          id,
+          order_id,
+          payment_status
+          `
+        )
+        .eq(
+          "utr",
+          utr
+        )
+        .maybeSingle();
+
+    if (existingPaymentError) {
+      console.error(
+        "Duplicate UTR lookup error:",
+        existingPaymentError
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "Unable to validate the payment reference.",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (existingPayment) {
+      return NextResponse.json(
+        {
+          error:
+            "This UPI Transaction ID / UTR has already been submitted.",
+        },
+        { status: 409 }
+      );
+    }
+
+    // --------------------------------------------------
+    // 8. Check for existing pending/submitted payment
+    // --------------------------------------------------
+
+    const {
+      data: existingPendingPayment,
+      error: pendingPaymentError,
+    } =
+      await adminSupabase
+        .from("manual_payments")
+        .select(
+          `
+          id,
+          order_id,
+          payment_status,
+          membership_id
+          `
+        )
+        .eq(
+          "user_id",
+          user.id
+        )
+        .in(
+          "payment_status",
+          [
+            "pending",
+            "submitted",
+          ]
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          }
+        )
+        .limit(1)
+        .maybeSingle();
+
+    if (pendingPaymentError) {
+      console.error(
+        "Pending payment lookup error:",
+        pendingPaymentError
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "Unable to check existing payment requests.",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (existingPendingPayment) {
+      return NextResponse.json(
+        {
+          error:
+            "You already have a payment awaiting verification. Please wait for it to be approved or rejected before submitting another payment.",
+          existingOrderId:
+            existingPendingPayment.order_id,
+        },
+        { status: 409 }
+      );
+    }
+
+    // --------------------------------------------------
+    // 9. Create pending membership
+    // --------------------------------------------------
+
     const {
       data: membership,
       error: membershipError,
     } =
       await adminSupabase
         .from("memberships")
-       .insert({
-  user_id: user.id,
-  plan_id: plan.id,
-  status: "pending",
-  payment_status: "created",
-})
-        .select("id")
+        .insert({
+          user_id:
+            user.id,
+
+          plan_id:
+            plan.id,
+
+          status:
+            "pending",
+
+          payment_status:
+            "created",
+        })
+        .select(
+          `
+          id,
+          user_id,
+          plan_id,
+          status,
+          payment_status
+          `
+        )
         .single();
 
     if (
@@ -195,7 +375,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create unique FamiNova order ID
+    // --------------------------------------------------
+    // 10. Generate unique FamiNova order ID
+    // --------------------------------------------------
+
     const orderId =
       "FAMI-UPI-" +
       membership.id
@@ -203,17 +386,30 @@ export async function POST(request: Request) {
         .substring(0, 16)
         .toUpperCase();
 
-    // Reject duplicate UTR submissions
+    // --------------------------------------------------
+    // 11. Save payment reference on membership
+    // --------------------------------------------------
+
     const {
-      data: existingPayment,
+      error: membershipReferenceError,
     } =
       await adminSupabase
-        .from("manual_payments")
-        .select("id")
-        .eq("utr", utr)
-        .maybeSingle();
+        .from("memberships")
+        .update({
+          payment_reference:
+            orderId,
+        })
+        .eq(
+          "id",
+          membership.id
+        );
 
-    if (existingPayment) {
+    if (membershipReferenceError) {
+      console.error(
+        "Membership payment reference error:",
+        membershipReferenceError
+      );
+
       await adminSupabase
         .from("memberships")
         .delete()
@@ -225,13 +421,16 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "This UPI Transaction ID has already been submitted.",
+            "Unable to create the payment reference.",
         },
-        { status: 409 }
+        { status: 500 }
       );
     }
 
-    // Create manual payment record
+    // --------------------------------------------------
+    // 12. Create manual payment
+    // --------------------------------------------------
+
     const {
       data: payment,
       error: paymentError,
@@ -259,9 +458,20 @@ export async function POST(request: Request) {
             new Date().toISOString(),
         })
         .select(
-          "id, order_id, amount, payment_status"
+          `
+          id,
+          order_id,
+          amount,
+          utr,
+          payment_status,
+          submitted_at
+          `
         )
         .single();
+
+    // --------------------------------------------------
+    // 13. Handle duplicate UTR/database error
+    // --------------------------------------------------
 
     if (
       paymentError ||
@@ -272,6 +482,29 @@ export async function POST(request: Request) {
         paymentError
       );
 
+      // Remove the orphan membership if
+      // payment creation failed.
+      await adminSupabase
+        .from("memberships")
+        .delete()
+        .eq(
+          "id",
+          membership.id
+        );
+
+      if (
+        paymentError?.code ===
+        "23505"
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "This UPI Transaction ID / UTR has already been submitted.",
+          },
+          { status: 409 }
+        );
+      }
+
       return NextResponse.json(
         {
           error:
@@ -281,17 +514,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Save order reference on membership
-    await adminSupabase
-      .from("memberships")
-      .update({
-        payment_reference:
-          orderId,
-      })
-      .eq(
-        "id",
-        membership.id
-      );
+    // --------------------------------------------------
+    // 14. Success
+    // --------------------------------------------------
 
     return NextResponse.json({
       success: true,
@@ -309,8 +534,14 @@ export async function POST(request: Request) {
         amount:
           payment.amount,
 
+        utr:
+          payment.utr,
+
         status:
           payment.payment_status,
+
+        submittedAt:
+          payment.submitted_at,
       },
     });
   } catch (error) {
@@ -322,7 +553,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Unexpected error while submitting payment.",
+          "Unexpected error while submitting the payment.",
       },
       { status: 500 }
     );
