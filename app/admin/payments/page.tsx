@@ -22,18 +22,16 @@ type Payment = {
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [processing, setProcessing] = useState<string | null>(
-    null
-  );
+  const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAdmin();
+    initializeAdmin();
   }, []);
 
-  async function checkAdmin() {
+  async function initializeAdmin() {
     setLoading(true);
     setError("");
 
@@ -47,28 +45,6 @@ export default function AdminPaymentsPage() {
       return;
     }
 
-    const { data: profile, error: profileError } =
-      await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-
-    if (profileError) {
-      console.error(profileError);
-      setError(profileError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (profile?.role !== "admin") {
-      setIsAdmin(false);
-      setLoading(false);
-      return;
-    }
-
-    setIsAdmin(true);
-
     await loadPayments();
   }
 
@@ -76,36 +52,39 @@ export default function AdminPaymentsPage() {
     setLoading(true);
     setError("");
 
-    const { data, error: paymentError } =
-      await supabase.rpc(
-        "admin_list_memberships"
-      );
+    const { data, error: paymentError } = await supabase.rpc(
+      "admin_list_memberships"
+    );
 
     if (paymentError) {
-      console.error(
-        "Admin payment loading error:",
-        paymentError
-      );
+      console.error("Admin payment loading error:", paymentError);
 
-      setError(paymentError.message);
+      const msg = paymentError.message || "";
+
+      if (
+        msg.toLowerCase().includes("unauthorized") ||
+        msg.toLowerCase().includes("admin access")
+      ) {
+        setAuthorized(false);
+        setLoading(false);
+        return;
+      }
+
+      setAuthorized(true);
+      setError(msg);
       setLoading(false);
       return;
     }
 
-    setPayments(
-      (data ?? []) as Payment[]
-    );
-
+    setAuthorized(true);
+    setPayments((data ?? []) as Payment[]);
     setLoading(false);
   }
 
-  async function approvePayment(
-    paymentId: string
-  ) {
-    const confirmed =
-      window.confirm(
-        "Have you verified this UPI payment in your payment account?"
-      );
+  async function approvePayment(paymentId: string) {
+    const confirmed = window.confirm(
+      "Have you verified this UPI payment in your payment account?"
+    );
 
     if (!confirmed) return;
 
@@ -113,44 +92,32 @@ export default function AdminPaymentsPage() {
     setError("");
     setMessage("");
 
-    const { error: approveError } =
-      await supabase.rpc(
-        "approve_membership",
-        {
-          membership_id:
-            paymentId,
-        }
-      );
+    const { error: approveError } = await supabase.rpc(
+      "approve_membership",
+      {
+        membership_id: paymentId,
+      }
+    );
 
     if (approveError) {
-      console.error(
-        approveError
-      );
-
-      setError(
-        approveError.message
-      );
-
+      console.error("Approve error:", approveError);
+      setError(approveError.message);
       setProcessing(null);
       return;
     }
 
     setMessage(
-      "Payment approved. Membership activated successfully."
+      "Payment approved successfully. Membership is now active."
     );
 
     setProcessing(null);
-
     await loadPayments();
   }
 
-  async function declinePayment(
-    paymentId: string
-  ) {
-    const confirmed =
-      window.confirm(
-        "Are you sure you want to decline this payment?"
-      );
+  async function declinePayment(paymentId: string) {
+    const confirmed = window.confirm(
+      "Are you sure you want to decline this payment?"
+    );
 
     if (!confirmed) return;
 
@@ -158,40 +125,27 @@ export default function AdminPaymentsPage() {
     setError("");
     setMessage("");
 
-    const { error: rejectError } =
-      await supabase.rpc(
-        "reject_membership",
-        {
-          membership_id:
-            paymentId,
-        }
-      );
+    const { error: rejectError } = await supabase.rpc(
+      "reject_membership",
+      {
+        membership_id: paymentId,
+      }
+    );
 
     if (rejectError) {
-      console.error(
-        rejectError
-      );
-
-      setError(
-        rejectError.message
-      );
-
+      console.error("Decline error:", rejectError);
+      setError(rejectError.message);
       setProcessing(null);
       return;
     }
 
-    setMessage(
-      "Payment declined."
-    );
-
+    setMessage("Payment declined.");
     setProcessing(null);
 
     await loadPayments();
   }
 
-  function statusClass(
-    status: string
-  ) {
+  function statusClass(status: string) {
     if (status === "pending") {
       return "bg-amber-100 text-amber-800";
     }
@@ -200,9 +154,7 @@ export default function AdminPaymentsPage() {
       return "bg-emerald-100 text-emerald-800";
     }
 
-    if (
-      status === "cancelled"
-    ) {
+    if (status === "cancelled") {
       return "bg-red-100 text-red-700";
     }
 
@@ -220,60 +172,53 @@ export default function AdminPaymentsPage() {
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
 
           <p className="mt-4 text-sm text-slate-600">
-            Loading payments...
+            Loading admin payments...
           </p>
         </div>
       </main>
     );
   }
 
-  if (!isAdmin) {
+  if (authorized === false) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50 px-5">
-        <div className="max-w-lg rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-bold text-slate-950">
+        <div className="w-full max-w-lg rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-3xl">
+            🔒
+          </div>
+
+          <h1 className="mt-5 text-2xl font-bold text-slate-950">
             Admin Access Required
           </h1>
 
-          <p className="mt-3 text-slate-600">
-            You do not have permission
-            to access payment approvals.
+          <p className="mt-3 text-sm leading-7 text-slate-600">
+            Please log in using the FamiNova account that has admin
+            permission.
           </p>
 
           <Link
-            href="/dashboard"
+            href="/login"
             className="mt-6 inline-block rounded-xl bg-slate-950 px-6 py-3 font-bold text-white"
           >
-            Dashboard
+            Login
           </Link>
         </div>
       </main>
     );
   }
 
-  const pendingPayments =
-    payments.filter(
-      (payment) =>
-        payment.status ===
-        "pending"
-    );
+  const pendingPayments = payments.filter(
+    (payment) => payment.status === "pending"
+  );
 
-  const activePayments =
-    payments.filter(
-      (payment) =>
-        payment.status ===
-        "active"
-    );
+  const activePayments = payments.filter(
+    (payment) => payment.status === "active"
+  );
 
   return (
     <main className="min-h-screen bg-slate-50">
-
-      {/* HEADER */}
-
       <header className="border-b border-slate-200 bg-white">
-
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5">
-
           <div>
             <Link
               href="/"
@@ -288,7 +233,6 @@ export default function AdminPaymentsPage() {
           </div>
 
           <div className="flex gap-3">
-
             <Link
               href="/dashboard"
               className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700"
@@ -297,25 +241,16 @@ export default function AdminPaymentsPage() {
             </Link>
 
             <button
-              onClick={
-                loadPayments
-              }
+              onClick={loadPayments}
               className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white"
             >
               Refresh
             </button>
-
           </div>
-
         </div>
-
       </header>
 
-
-      {/* TITLE */}
-
       <section className="mx-auto max-w-7xl px-5 pb-8 pt-10">
-
         <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-600">
           Payment Verification
         </p>
@@ -324,20 +259,13 @@ export default function AdminPaymentsPage() {
           Membership Payment Approvals
         </h1>
 
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-          Review UPI transaction details
-          before approving memberships.
+        <p className="mt-3 text-sm leading-7 text-slate-600">
+          Review UPI payment details before activating a membership.
         </p>
-
       </section>
 
-
-      {/* STATS */}
-
       <section className="mx-auto grid max-w-7xl gap-5 px-5 pb-8 md:grid-cols-3">
-
         <div className="rounded-3xl border border-slate-200 bg-white p-6">
-
           <p className="text-sm font-semibold text-slate-500">
             Total Transactions
           </p>
@@ -345,49 +273,33 @@ export default function AdminPaymentsPage() {
           <p className="mt-2 text-4xl font-black text-slate-950">
             {payments.length}
           </p>
-
         </div>
 
-
         <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6">
-
           <p className="text-sm font-semibold text-amber-700">
             Pending Approval
           </p>
 
           <p className="mt-2 text-4xl font-black text-amber-900">
-            {
-              pendingPayments.length
-            }
+            {pendingPayments.length}
           </p>
-
         </div>
 
-
         <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
-
           <p className="text-sm font-semibold text-emerald-700">
             Active Memberships
           </p>
 
           <p className="mt-2 text-4xl font-black text-emerald-900">
-            {
-              activePayments.length
-            }
+            {activePayments.length}
           </p>
-
         </div>
-
       </section>
 
-
-      {/* MESSAGES */}
-
       <section className="mx-auto max-w-7xl px-5">
-
         {error && (
           <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
+            <strong>Error:</strong> {error}
           </div>
         )}
 
@@ -396,315 +308,197 @@ export default function AdminPaymentsPage() {
             {message}
           </div>
         )}
-
       </section>
 
-
-      {/* PENDING */}
-
       <section className="mx-auto max-w-7xl px-5 pb-10">
-
         <div className="mb-5 flex items-center justify-between">
-
           <h2 className="text-2xl font-bold text-slate-950">
             Pending Payments
           </h2>
 
           <span className="rounded-full bg-amber-100 px-4 py-1.5 text-sm font-bold text-amber-800">
-            {
-              pendingPayments.length
-            }
+            {pendingPayments.length}
           </span>
-
         </div>
 
-        {pendingPayments.length ===
-        0 ? (
-
+        {pendingPayments.length === 0 ? (
           <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
-
             <p className="font-semibold text-slate-700">
               No pending payments.
             </p>
 
             <p className="mt-2 text-sm text-slate-500">
-              New UPI membership
-              submissions will appear
-              here.
+              New UPI membership submissions will appear here.
             </p>
-
           </div>
-
         ) : (
-
           <div className="space-y-5">
+            {pendingPayments.map((payment) => (
+              <div
+                key={payment.id}
+                className="rounded-3xl border-2 border-amber-200 bg-white p-6 shadow-sm"
+              >
+                <div className="flex flex-col justify-between gap-6 lg:flex-row">
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h3 className="text-xl font-bold text-slate-950">
+                        {payment.plan_name || "Membership"}
+                      </h3>
 
-            {pendingPayments.map(
-              (payment) => (
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${statusClass(
+                          payment.status
+                        )}`}
+                      >
+                        {payment.status}
+                      </span>
+                    </div>
 
-                <div
-                  key={payment.id}
-                  className="rounded-3xl border-2 border-amber-200 bg-white p-6 shadow-sm"
-                >
-
-                  <div className="flex flex-col justify-between gap-6 lg:flex-row">
-
-                    <div className="flex-1">
-
-                      <div className="flex flex-wrap items-center gap-3">
-
-                        <h3 className="text-xl font-bold text-slate-950">
-                          {payment.plan_name ??
-                            "Membership"}
-                        </h3>
-
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${statusClass(
-                            payment.status
-                          )}`}
-                        >
-                          {
-                            payment.status
-                          }
-                        </span>
-
-                      </div>
-
-
-                      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-
-                        <div>
-
-                          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                            Amount
-                          </p>
-
-                          <p className="mt-1 text-2xl font-black text-slate-950">
-                            ₹
-                            {Number(
-                              payment.payment_amount ??
-                                payment.plan_price ??
-                                0
-                            ).toLocaleString(
-                              "en-IN"
-                            )}
-                          </p>
-
-                        </div>
-
-
-                        <div>
-
-                          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                            UPI / UTR
-                          </p>
-
-                          <p className="mt-1 break-all font-mono text-sm font-bold text-slate-950">
-                            {payment.payment_reference ??
-                              "Not available"}
-                          </p>
-
-                        </div>
-
-
-                        <div>
-
-                          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                            Duration
-                          </p>
-
-                          <p className="mt-1 font-semibold text-slate-800">
-                            {payment.duration_months ??
-                              "-"}{" "}
-                            month(s)
-                          </p>
-
-                        </div>
-
-
-                        <div>
-
-                          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                            Submitted
-                          </p>
-
-                          <p className="mt-1 text-sm font-semibold text-slate-800">
-                            {new Date(
-                              payment.created_at
-                            ).toLocaleString(
-                              "en-IN"
-                            )}
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-                      <div className="mt-5 rounded-2xl bg-slate-50 p-4">
-
+                    <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                      <div>
                         <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                          User ID
+                          Amount
                         </p>
 
-                        <p className="mt-1 break-all font-mono text-xs text-slate-700">
-                          {
-                            payment.user_id
-                          }
+                        <p className="mt-1 text-2xl font-black text-slate-950">
+                          ₹
+                          {Number(
+                            payment.payment_amount ??
+                              payment.plan_price ??
+                              0
+                          ).toLocaleString("en-IN")}
                         </p>
-
                       </div>
 
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                          UPI / UTR
+                        </p>
+
+                        <p className="mt-1 break-all font-mono text-sm font-bold text-slate-950">
+                          {payment.payment_reference || "Not available"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                          Duration
+                        </p>
+
+                        <p className="mt-1 font-semibold text-slate-800">
+                          {payment.duration_months ?? "-"} month(s)
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                          Submitted
+                        </p>
+
+                        <p className="mt-1 text-sm font-semibold text-slate-800">
+                          {new Date(
+                            payment.created_at
+                          ).toLocaleString("en-IN")}
+                        </p>
+                      </div>
                     </div>
 
+                    <div className="mt-5 rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                        User ID
+                      </p>
 
-                    {/* ACTIONS */}
-
-                    <div className="flex min-w-[200px] flex-col gap-3">
-
-                      <button
-                        onClick={() =>
-                          approvePayment(
-                            payment.id
-                          )
-                        }
-                        disabled={
-                          processing ===
-                          payment.id
-                        }
-                        className="rounded-xl bg-emerald-600 px-5 py-3.5 font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50"
-                      >
-                        {processing ===
-                        payment.id
-                          ? "Processing..."
-                          : "✓ Approve Payment"}
-                      </button>
-
-
-                      <button
-                        onClick={() =>
-                          declinePayment(
-                            payment.id
-                          )
-                        }
-                        disabled={
-                          processing ===
-                          payment.id
-                        }
-                        className="rounded-xl border border-red-300 bg-white px-5 py-3.5 font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
-                      >
-                        Decline Payment
-                      </button>
-
+                      <p className="mt-1 break-all font-mono text-xs text-slate-700">
+                        {payment.user_id}
+                      </p>
                     </div>
-
                   </div>
 
+                  <div className="flex min-w-[200px] flex-col gap-3">
+                    <button
+                      onClick={() => approvePayment(payment.id)}
+                      disabled={processing === payment.id}
+                      className="rounded-xl bg-emerald-600 px-5 py-3.5 font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {processing === payment.id
+                        ? "Processing..."
+                        : "✓ Approve Payment"}
+                    </button>
+
+                    <button
+                      onClick={() => declinePayment(payment.id)}
+                      disabled={processing === payment.id}
+                      className="rounded-xl border border-red-300 bg-white px-5 py-3.5 font-bold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      Decline Payment
+                    </button>
+                  </div>
                 </div>
-
-              )
-            )}
-
+              </div>
+            ))}
           </div>
-
         )}
-
       </section>
 
-
-      {/* RECENT TRANSACTIONS */}
-
       <section className="mx-auto max-w-7xl px-5 pb-14">
-
         <h2 className="mb-5 text-2xl font-bold text-slate-950">
           Recent Transactions
         </h2>
 
         {payments.length === 0 ? (
-
           <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center">
-
             <p className="text-slate-600">
               No transactions found.
             </p>
-
           </div>
-
         ) : (
-
           <div className="space-y-3">
+            {payments.map((payment) => (
+              <div
+                key={payment.id}
+                className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center"
+              >
+                <div>
+                  <p className="font-bold text-slate-950">
+                    {payment.plan_name || "Membership"}
+                  </p>
 
-            {payments.map(
-              (payment) => (
+                  <p className="mt-1 text-xs text-slate-500">
+                    {new Date(
+                      payment.created_at
+                    ).toLocaleString("en-IN")}
+                  </p>
 
-                <div
-                  key={payment.id}
-                  className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center"
-                >
-
-                  <div>
-
-                    <p className="font-bold text-slate-950">
-                      {payment.plan_name ??
-                        "Membership"}
+                  {payment.payment_reference && (
+                    <p className="mt-1 break-all font-mono text-xs text-slate-500">
+                      UTR: {payment.payment_reference}
                     </p>
-
-                    <p className="mt-1 text-xs text-slate-500">
-                      {new Date(
-                        payment.created_at
-                      ).toLocaleString(
-                        "en-IN"
-                      )}
-                    </p>
-
-                    {payment.payment_reference && (
-                      <p className="mt-1 break-all font-mono text-xs text-slate-500">
-                        UTR:{" "}
-                        {
-                          payment.payment_reference
-                        }
-                      </p>
-                    )}
-
-                  </div>
-
-
-                  <div className="flex items-center gap-4">
-
-                    <p className="font-black text-slate-950">
-                      ₹
-                      {Number(
-                        payment.payment_amount ??
-                          payment.plan_price ??
-                          0
-                      ).toLocaleString(
-                        "en-IN"
-                      )}
-                    </p>
-
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${statusClass(
-                        payment.status
-                      )}`}
-                    >
-                      {
-                        payment.status
-                      }
-                    </span>
-
-                  </div>
-
+                  )}
                 </div>
 
-              )
-            )}
+                <div className="flex items-center gap-4">
+                  <p className="font-black text-slate-950">
+                    ₹
+                    {Number(
+                      payment.payment_amount ??
+                        payment.plan_price ??
+                        0
+                    ).toLocaleString("en-IN")}
+                  </p>
 
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${statusClass(
+                      payment.status
+                    )}`}
+                  >
+                    {payment.status}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
-
         )}
-
       </section>
-
     </main>
   );
 }
